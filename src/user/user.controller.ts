@@ -8,16 +8,9 @@ import { RequestWithUser } from 'src/interfaces';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  // ✅ API: Thống kê học viên
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
-  @Get('statistics')
-  async getUserStatistics(@Req() req: RequestWithUser) {
-    const userId = req.user.data.user_id;
-    return this.userService.getUserStatistics(userId);
-  }
 
-  // ✅ API: Lấy danh sách người dùng
+
+
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Get()
@@ -25,7 +18,6 @@ export class UserController {
     return this.userService.getAllUsers();
   }
 
-  // ✅ API: Lấy thông tin người dùng theo ID
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Get(':id')
@@ -33,7 +25,6 @@ export class UserController {
     return this.userService.getUserById(Number(id));
   }
 
-  // ✅ API: Cập nhật thông tin người dùng
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Patch(':id')
@@ -41,7 +32,6 @@ export class UserController {
     return this.userService.updateUser(Number(id), userData);
   }
 
-  // ✅ API: Xóa người dùng
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Delete(':id')
@@ -49,11 +39,5 @@ export class UserController {
     return this.userService.deleteUser(Number(id));
   }
 
-  // ✅ API: Lấy danh sách học viên
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
-  @Get('students')
-  async getStudents() {
-    return this.userService.getStudents();
-  }
+
 }

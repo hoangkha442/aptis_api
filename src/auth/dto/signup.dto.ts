@@ -18,8 +18,8 @@ export class BodySignup {
         example: 'student',
         required: false,
     })
-    role?: 'admin' | 'instructor' | 'student'; 
+    role?: 'admin' | 'lecturer' | 'student'; 
 
     @ApiProperty({ required: false })
-    profile_image?: string;
+    last_day?: Date | string;
 }

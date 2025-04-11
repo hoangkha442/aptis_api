@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger"
 
 export class bodyLogin {
     @ApiProperty({
-        example: 'string@gmail.com',
+        example: 'student@gmail.com',
     })
     email: string
 

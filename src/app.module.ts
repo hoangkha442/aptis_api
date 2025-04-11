@@ -5,14 +5,16 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { JwtStrategy } from 'src/strategy/jwt.strategy';
-import { ClassModule } from './class/class.module';
+import { ReadingModule } from './reading/reading.module';
+import { ListeningModule } from './listening/listening.module';
 
 @Module({
   imports: [UserModule, AuthModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    ClassModule
+    ReadingModule,
+    ListeningModule,
   ],
   controllers: [AppController],
   providers: [AppService, JwtStrategy],

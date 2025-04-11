@@ -21,7 +21,8 @@ export class AuthService {
         }
 
         // Kiểm tra mật khẩu
-        const isPasswordMatching = await bcrypt.compare(bodyLogin.password, getUser.password_hash);
+        const isPasswordMatching = await bcrypt.compare(bodyLogin.password, getUser.password);
+
         if (!isPasswordMatching) {
             throw new HttpException("Sai mật khẩu!", HttpStatus.BAD_REQUEST);
         }
@@ -54,21 +55,21 @@ export class AuthService {
 
         if (!checkEmail) {
             const newPassword = await bcrypt.hash(bodySignup.password, 10);
-            const userRole = bodySignup.role ?? 'student';
+            const userRole = bodySignup.role ?? "student"
             const username = bodySignup.email.split('@')[0];
 
             try {
                 const newUser = await this.prisma.users.create({
                     data: {
-                        username: username,
+                        user_name: username,
                         email: bodySignup.email,
-                        password_hash: newPassword,
+                        password: newPassword,
                         full_name: bodySignup.full_name,
                         phone_number: bodySignup.phone_number,
                         role: userRole,
-                        status: 'inactive',
-                        created_at: new Date(),
-                        profile_image: bodySignup.profile_image,
+                        status: 'active',
+                        create_at: new Date(),
+                        last_day: bodySignup.last_day
                     }
                 });
 

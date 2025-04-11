@@ -7,129 +7,143 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model enrollments {
-  enrollment_id            Int       @id @default(autoincrement())
-  class_id                 Int
-  student_id               Int
-  enroll_date              DateTime? @default(now()) @db.Timestamp(0)
-  attended_sessions        Int       @default(0)
-  participation_rate       Decimal   @default(0.00) @db.Decimal(5, 2)
-  homework_submitted       Int       @default(0)
-  homework_submission_rate Decimal   @default(0.00) @db.Decimal(5, 2)
-  start_learning_date      DateTime? @db.Date
-  end_learning_date        DateTime? @db.Date
-  is_graduating            Boolean?  @default(false)
-  classes                  classes   @relation(fields: [class_id], references: [class_id], onDelete: Cascade, onUpdate: NoAction, map: "enrollments_ibfk_1")
-  students                 students  @relation(fields: [student_id], references: [student_id], onDelete: Cascade, onUpdate: NoAction, map: "enrollments_ibfk_2")
-
-  @@index([class_id], map: "class_id")
-  @@index([student_id], map: "student_id")
-}
-
 model users {
-  user_id       Int           @id @default(autoincrement())
-  username      String        @unique(map: "username") @db.VarChar(50)
-  password_hash String        @db.VarChar(255)
-  full_name     String        @db.VarChar(100)
-  email         String        @unique(map: "email") @db.VarChar(100)
-  phone_number  String?       @db.VarChar(15)
-  role          users_role
-  status        users_status? @default(inactive)
-  profile_image String?       @db.VarChar(255)
-  created_at    DateTime?     @default(now()) @db.Timestamp(0)
-  source        users_source  @default(Kh_c)
-  instructors   instructors[]
-  students      students[]
+  user_id      Int           @id @default(autoincrement())
+  user_name    String        @db.VarChar(50)
+  password     String        @db.VarChar(255)
+  full_name    String?       @db.VarChar(100)
+  email        String        @unique(map: "email") @db.VarChar(100)
+  phone_number String?       @db.VarChar(20)
+  role         users_role?   @default(student)
+  status       users_status? @default(active)
+  create_at    DateTime?     @default(now()) @db.DateTime(0)
+  last_day     DateTime?     @db.DateTime(0)
+  courses      courses[]
 }
 
-model classes {
-  class_id                 Int           @id @default(autoincrement())
-  class_name               String        @db.VarChar(100)
-  description              String?       @db.Text
-  start_date               DateTime      @db.Date
-  end_date                 DateTime      @db.Date
-  instructor_id            Int
-  subject_id               Int
-  class_image              String?       @db.VarChar(255)
-  max_students             Int           @default(30)
-  completed_sessions       Int           @default(0)
-  participation_rate       Decimal       @default(0.00) @db.Decimal(5, 2)
-  completed_materials      Int           @default(0)
-  homework_submission_rate Decimal       @default(0.00) @db.Decimal(5, 2)
-  instructors              instructors   @relation(fields: [instructor_id], references: [instructor_id], onDelete: Cascade, onUpdate: NoAction, map: "classes_ibfk_1")
-  subjects                 subjects      @relation(fields: [subject_id], references: [subject_id], onDelete: Cascade, onUpdate: NoAction, map: "classes_ibfk_2")
-  enrollments              enrollments[]
-
-  @@index([instructor_id], map: "instructor_id")
-  @@index([subject_id], map: "subject_id")
-}
-
-model instructors {
-  instructor_id                 Int       @id @default(autoincrement())
-  user_id                       Int
-  specialization                String?   @db.VarChar(100)
-  hire_date                     DateTime? @db.Date
-  profile_image                 String?   @db.VarChar(255)
-  total_classes_taught          Int       @default(0)
-  average_student_participation Decimal   @default(0.00) @db.Decimal(5, 2)
-  average_homework_submission   Decimal   @default(0.00) @db.Decimal(5, 2)
-  classes                       classes[]
-  users                         users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "instructors_ibfk_1")
+model courses {
+  course_id   Int     @id @default(autoincrement())
+  course_name String? @db.VarChar(100)
+  description String? @db.Text
+  user_id     Int?
+  users       users?  @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "courses_ibfk_1")
 
   @@index([user_id], map: "user_id")
 }
 
-model students {
-  student_id                       Int               @id @default(autoincrement())
-  user_id                          Int
-  date_of_birth                    DateTime?         @db.Date
-  enrollment_date                  DateTime?         @db.Date
-  profile_image                    String?           @db.VarChar(255)
-  total_classes                    Int               @default(0)
-  completed_classes                Int               @default(0)
-  average_participation_rate       Decimal           @default(0.00) @db.Decimal(5, 2)
-  average_homework_submission_rate Decimal           @default(0.00) @db.Decimal(5, 2)
-  start_learning_date              DateTime?         @db.Date
-  end_learning_date                DateTime?         @db.Date
-  age_group                        StudentsAgeGroup?
-  enrollments                      enrollments[]
-  users                            users             @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "students_ibfk_1")
-
-  @@index([user_id], map: "user_id")
+model listening_test {
+  listening_test_id    Int                    @id @default(autoincrement())
+  key_test             String?                @db.VarChar(50)
+  tittle               String?                @db.VarChar(100)
+  description          String?                @db.Text
+  duration             Int?
+  listening_test_items listening_test_items[]
 }
 
-model subjects {
-  subject_id   Int       @id @default(autoincrement())
-  subject_name String    @db.VarChar(100)
-  description  String?   @db.Text
-  syllabus     String?   @db.VarChar(255)
-  created_at   DateTime? @default(now()) @db.Timestamp(0)
-  classes      classes[]
+model listening_test_items {
+  listening_test_items_id Int             @id @default(autoincrement())
+  listening_test_id       Int?
+  question_number         String?         @db.VarChar(100)
+  tittle                  String?         @db.VarChar(100)
+  description             String?         @db.Text
+  content                 String?         @db.Text
+  correct_answer          String?         @db.VarChar(60)
+  options                 String?         @db.Text
+  script                  String?         @db.Text
+  topic                   String?         @db.VarChar(100)
+  hidden_correct_aswer    Boolean?        @default(true)
+  listening_test          listening_test? @relation(fields: [listening_test_id], references: [listening_test_id], onDelete: Cascade, onUpdate: NoAction, map: "listening_test_items_ibfk_1")
+
+  @@index([listening_test_id], map: "listening_test_id")
+}
+
+model reading_part_1 {
+  reading_part_1_id Int           @id @default(autoincrement())
+  reading_test_id   Int?
+  title             String?       @db.VarChar(100)
+  description       String?       @db.Text
+  content           String?       @db.Text
+  correct_answer    String?       @db.VarChar(10)
+  options           String?       @db.Text
+  reading_test      reading_test? @relation(fields: [reading_test_id], references: [reading_test_id], onDelete: Cascade, onUpdate: NoAction, map: "reading_part_1_ibfk_1")
+
+  @@index([reading_test_id], map: "reading_test_id")
+}
+
+model reading_part_2 {
+  reading_part_2_id Int           @id @default(autoincrement())
+  reading_test_id   Int?
+  title             String?       @db.VarChar(100)
+  name_of_test      String?       @db.VarChar(100)
+  description       String?       @db.Text
+  content           String?       @db.Text
+  sort_order        Int?
+  reading_test      reading_test? @relation(fields: [reading_test_id], references: [reading_test_id], onDelete: Cascade, onUpdate: NoAction, map: "reading_part_2_ibfk_1")
+
+  @@index([reading_test_id], map: "reading_test_id")
+}
+
+model reading_part_3 {
+  reading_part_3_id Int           @id @default(autoincrement())
+  reading_test_id   Int?
+  title             String?       @db.VarChar(100)
+  name_of_test      String?       @db.VarChar(100)
+  description       String?       @db.Text
+  content           String?       @db.Text
+  sort_order        Int?
+  reading_test      reading_test? @relation(fields: [reading_test_id], references: [reading_test_id], onDelete: Cascade, onUpdate: NoAction, map: "reading_part_3_ibfk_1")
+
+  @@index([reading_test_id], map: "reading_test_id")
+}
+
+model reading_part_4 {
+  reading_part_4_id Int           @id @default(autoincrement())
+  reading_test_id   Int?
+  title             String?       @db.VarChar(100)
+  description       String?       @db.Text
+  paragraph_text    String?       @db.Text
+  content           String?       @db.Text
+  correct_answer    String?       @db.VarChar(10)
+  options           String?       @db.Text
+  reading_test      reading_test? @relation(fields: [reading_test_id], references: [reading_test_id], onDelete: Cascade, onUpdate: NoAction, map: "reading_part_4_ibfk_1")
+
+  @@index([reading_test_id], map: "reading_test_id")
+}
+
+model reading_part_5 {
+  reading_part_5_id    Int           @id @default(autoincrement())
+  reading_test_id      Int?
+  title                String?       @db.VarChar(100)
+  name_of_test         String?       @db.VarChar(100)
+  description          String?       @db.Text
+  content              String?       @db.Text
+  sort_order           Int?
+  hidden_correct_aswer Boolean?      @default(true)
+  reading_test         reading_test? @relation(fields: [reading_test_id], references: [reading_test_id], onDelete: Cascade, onUpdate: NoAction, map: "reading_part_5_ibfk_1")
+
+  @@index([reading_test_id], map: "reading_test_id")
+}
+
+model reading_test {
+  reading_test_id Int              @id @default(autoincrement())
+  key_test        String?          @db.VarChar(50)
+  tittle          String?          @db.VarChar(100)
+  description     String?          @db.Text
+  duration        Int?
+  reading_part_1  reading_part_1[]
+  reading_part_2  reading_part_2[]
+  reading_part_3  reading_part_3[]
+  reading_part_4  reading_part_4[]
+  reading_part_5  reading_part_5[]
 }
 
 enum users_role {
   admin
-  instructor
   student
+  lecturer
 }
 
 enum users_status {
   active
   inactive
-}
-
-enum users_source {
-  Facebook
-  B_n_b_                  @map("Bạn bè")
-  T_m_ki_m_tr_c_tuy_n     @map("Tìm kiếm trực tuyến")
-  Gi_i_thi_u_t__gi_o_vi_n @map("Giới thiệu từ giáo viên")
-  Kh_c                    @map("Khác")
-}
-
-enum StudentsAgeGroup {
-  UNDER_12  @map("UNDER_12")
-  AGE_12_18 @map("AGE_12_18")
-  AGE_19_30 @map("AGE_19_30")
-  AGE_31_45 @map("AGE_31_45")
-  OVER_45   @map("OVER_45")
 }
