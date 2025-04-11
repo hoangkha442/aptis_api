@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { JwtStrategy } from 'src/strategy/jwt.strategy';
 import { ReadingModule } from './reading/reading.module';
 import { ListeningModule } from './listening/listening.module';
+import { InitDbController } from 'src/init-db/init-db.controller';
 
 @Module({
   imports: [UserModule, AuthModule,
@@ -16,7 +17,7 @@ import { ListeningModule } from './listening/listening.module';
     ReadingModule,
     ListeningModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, InitDbController],
   providers: [AppService, JwtStrategy],
 })
 export class AppModule {}
