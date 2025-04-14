@@ -1,43 +1,48 @@
-import { Controller, Get, Patch, Param, Delete, UseGuards, Req, Body } from '@nestjs/common';
-import { UserService } from './user.service';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Put,
+  Post,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import { RequestWithUser } from 'src/interfaces';
+import { UserService } from './user.service';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
+@ApiTags('User')
+@ApiBearerAuth()
+@UseGuards(AuthGuard('jwt'))
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-
-
-
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
   @Get()
-  async getAllUsers() {
+  getAllUsers() {
     return this.userService.getAllUsers();
   }
 
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
   @Get(':id')
-  async getUserById(@Param('id') id: string) {
+  getUserById(@Param('id') id: string) {
     return this.userService.getUserById(Number(id));
   }
 
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
-  @Patch(':id')
-  async updateUser(@Param('id') id: string, @Body() userData: Partial<any>) {
+  @Post()
+  createUser(@Body() userData: CreateUserDto) {
+    return this.userService.createUser(userData);
+  }
+
+  @Put(':id')
+  updateUser(@Param('id') id: string, @Body() userData: UpdateUserDto) {
     return this.userService.updateUser(Number(id), userData);
   }
 
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
   @Delete(':id')
-  async deleteUser(@Param('id') id: string) {
+  deleteUser(@Param('id') id: string) {
     return this.userService.deleteUser(Number(id));
   }
-
-
 }
