@@ -26,6 +26,10 @@ export class AuthService {
         if (!isPasswordMatching) {
             throw new HttpException("Sai mật khẩu!", HttpStatus.BAD_REQUEST);
         }
+
+        if (getUser.status !== 'active') {
+            throw new HttpException("Tài khoản không hoạt động", HttpStatus.FORBIDDEN);
+        }
         try {
             const token = await this.jwtService.signAsync(
                 { data: { user_id: getUser.user_id } }, 
@@ -44,6 +48,9 @@ export class AuthService {
         });
         if (!user) {
           throw new HttpException('Không tìm thấy tài khoản', HttpStatus.NOT_FOUND);
+        }
+        if (user.status !== 'active') {
+            throw new HttpException('Tài khoản không hoạt động', HttpStatus.FORBIDDEN);
         }
         return user;
       }

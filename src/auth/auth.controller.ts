@@ -4,7 +4,7 @@ import { bodyLogin } from './dto/login.dto';
 import { BodySignup } from './dto/signup.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import { NewPasswordDto, ResetPasswordDto } from './dto/reset-password.dto';
+
 import { RequestWithUser } from 'src/interfaces';
 
 @ApiTags("Auth")
@@ -35,7 +35,6 @@ export class AuthController {
     const userId = req.user.data.user_id; 
     return this.authService.getMyInfo(userId);
 }
-
 
   @Post('signup')
   signup(@Body() bodySignup:BodySignup){
