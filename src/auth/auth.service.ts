@@ -1,155 +1,129 @@
-import { HttpException, HttpStatus, Injectable, Body } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaClient, users } from '@prisma/client';
 import { bodyLogin } from './dto/login.dto';
 import { BodySignup } from './dto/signup.dto';
 import * as bcrypt from 'bcrypt';
-import { v4 as uuidv4 } from 'uuid';
 import * as useragent from 'useragent';
+import { v4 as uuidv4 } from 'uuid';
+
 @Injectable()
 export class AuthService {
-  prisma = new PrismaClient();
+  private prisma = new PrismaClient();
 
-  constructor(private jwtService: JwtService) {}
+  constructor(private readonly jwtService: JwtService) {}
 
-  async login(bodyLogin: bodyLogin, req: any) {
-    const getUser = await this.prisma.users.findUnique({
-      where: { email: bodyLogin.email },
-    });
-
-    if (!getUser) {
-      throw new HttpException('Sai email!', HttpStatus.BAD_REQUEST);
-    }
-
-    const isPasswordMatching = await bcrypt.compare(
-      bodyLogin.password,
-      getUser.password,
-    );
-    if (!isPasswordMatching) {
-      throw new HttpException('Sai mật khẩu!', HttpStatus.BAD_REQUEST);
-    }
-
-    if (getUser.status !== 'active') {
-      throw new HttpException(
-        'Tài khoản không hoạt động',
-        HttpStatus.FORBIDDEN,
-      );
-    }
-
-    // Lấy IP và thiết bị hiện tại
+  private getClientInfo(req: any) {
     const ip =
-      req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+      req.ip || req.headers['x-forwarded-for'] || req.connection?.remoteAddress;
     const agent = useragent.parse(req.headers['user-agent']);
     const device = `${agent.os.toString()} - ${agent.toAgent()}`;
+    return { ip, device };
+  }
 
-    // Kiểm tra xem session này (ip + device) đã tồn tại chưa
-    const existingSameSession = await this.prisma.user_sessions.findFirst({
-      where: {
-        user_id: getUser.user_id,
-        ip_address: ip,
-        device: device,
-      },
+  private async checkOrCreateSession(userId: number, ip: string, device: string) {
+    const existingSession = await this.prisma.user_sessions.findFirst({
+      where: { user_id: userId, ip_address: ip, device },
     });
 
-    if (!existingSameSession) {
-      // Đếm tổng số thiết bị khác nhau
-      const existingSessions = await this.prisma.user_sessions.findMany({
-        where: { user_id: getUser.user_id },
+    if (!existingSession) {
+      const sessions = await this.prisma.user_sessions.findMany({
+        where: { user_id: userId },
         orderBy: { created_at: 'asc' },
       });
 
-      if (existingSessions.length >= 3) {
-        // Nếu > 3 thiết bị khác → khóa tài khoản
+      if (sessions.length >= 3) {
         await this.prisma.users.update({
-          where: { user_id: getUser.user_id },
+          where: { user_id: userId },
           data: { status: 'inactive' },
         });
-
         throw new HttpException(
           'Tài khoản bị khóa do đăng nhập quá số thiết bị cho phép.',
           HttpStatus.FORBIDDEN,
         );
       }
 
-      // Tạo session mới
-      const sessionToken = uuidv4();
-      const expiresAt = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000); // 10 ngày
-
       await this.prisma.user_sessions.create({
         data: {
-          session_id: sessionToken,
-          user_id: getUser.user_id,
-          token: sessionToken,
+          session_id: uuidv4(),
+          user_id: userId,
+          token: uuidv4(),
           ip_address: ip,
-          device: device,
-          expires_at: expiresAt,
+          device,
+          expires_at: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000), 
         },
       });
     }
+  }
 
-    // Trả về JWT Token luôn (dù tạo session mới hay đã tồn tại)
-    const jwtToken = await this.jwtService.signAsync(
-      { data: { user_id: getUser.user_id } },
+  async login({ email, password }: bodyLogin, req: any) {
+    const user = await this.prisma.users.findUnique({ where: { email } });
+
+    if (!user) throw new HttpException('Sai email!', HttpStatus.BAD_REQUEST);
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) throw new HttpException('Sai mật khẩu!', HttpStatus.BAD_REQUEST);
+
+    if (user.status !== 'active') {
+      throw new HttpException('Tài khoản không hoạt động', HttpStatus.FORBIDDEN);
+    }
+
+    const { ip, device } = this.getClientInfo(req);
+    await this.checkOrCreateSession(user.user_id, ip, device);
+
+    const token = await this.jwtService.signAsync(
+      { data: { user_id: user.user_id } },
       { expiresIn: '10d', secret: 'KHONG_CO_KHOA' },
     );
 
-    return {
-      token: jwtToken,
-      role: getUser.role,
-    };
+    return { token, role: user.role };
   }
 
-  async getMyInfo(requestingUserID: number): Promise<users> {
+  async getMyInfo(userId: number, req: any): Promise<users> {
+    const { ip, device } = this.getClientInfo(req);
+
     const user = await this.prisma.users.findUnique({
-      where: { user_id: requestingUserID },
+      where: { user_id: userId },
       include: { user_sessions: true },
     });
-    if (!user) {
-      throw new HttpException('Không tìm thấy tài khoản', HttpStatus.NOT_FOUND);
-    }
+
+    if (!user) throw new HttpException('Không tìm thấy tài khoản', HttpStatus.NOT_FOUND);
     if (user.status !== 'active') {
-      throw new HttpException(
-        'Tài khoản không hoạt động',
-        HttpStatus.FORBIDDEN,
-      );
+      throw new HttpException('Tài khoản không hoạt động', HttpStatus.FORBIDDEN);
     }
+
+    await this.checkOrCreateSession(userId, ip, device);
     return user;
   }
 
-  async signup(@Body() bodySignup: BodySignup) {
-    const checkEmail = await this.prisma.users.findUnique({
-      where: { email: bodySignup.email },
-    });
+  async signup(body: BodySignup) {
+    const { email, password, full_name, phone_number, role, last_day } = body;
+    const existingUser = await this.prisma.users.findUnique({ where: { email } });
 
-    if (!checkEmail) {
-      const newPassword = await bcrypt.hash(bodySignup.password, 10);
-      const userRole = bodySignup.role ?? 'student';
-      const username = bodySignup.email.split('@')[0];
-
-      try {
-        const newUser = await this.prisma.users.create({
-          data: {
-            user_name: username,
-            email: bodySignup.email,
-            password: newPassword,
-            full_name: bodySignup.full_name,
-            phone_number: bodySignup.phone_number,
-            role: userRole,
-            status: 'active',
-            create_at: new Date(),
-            last_day: bodySignup.last_day,
-          },
-        });
-
-        return newUser;
-      } catch (error) {
-        throw new HttpException(
-          'Lỗi khi tạo người dùng, vui lòng thử lại!',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-    } else {
+    if (existingUser) {
       throw new HttpException('Email đã tồn tại!', HttpStatus.BAD_REQUEST);
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const userName = email.split('@')[0];
+    const userRole = role ?? 'student';
+
+    try {
+      return await this.prisma.users.create({
+        data: {
+          user_name: userName,
+          email,
+          password: hashedPassword,
+          full_name,
+          phone_number,
+          role: userRole,
+          status: 'active',
+          create_at: new Date(),
+          last_day,
+        },
+      });
+    } catch {
+      throw new HttpException('Lỗi khi tạo người dùng, vui lòng thử lại!', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }
