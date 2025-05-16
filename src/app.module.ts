@@ -9,6 +9,7 @@ import { ReadingModule } from './reading/reading.module';
 import { ListeningModule } from './listening/listening.module';
 import { InitDbController } from 'src/init-db/init-db.controller';
 import { CoursesModule } from './courses/courses.module';
+import { UserSessionsModule } from './user-sessions/user-sessions.module';
 
 @Module({
   imports: [UserModule, AuthModule,
@@ -18,6 +19,7 @@ import { CoursesModule } from './courses/courses.module';
     ReadingModule,
     ListeningModule,
     CoursesModule,
+    UserSessionsModule,
   ],
   controllers: [AppController, InitDbController],
   providers: [AppService, JwtStrategy],

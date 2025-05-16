@@ -8,7 +8,11 @@ export class UserService {
   prisma = new PrismaClient();
 
   async getAllUsers() {
-    return this.prisma.users.findMany();
+    return this.prisma.users.findMany({
+      include: {
+        user_sessions: true
+      }
+    });
   }
 
   async getUserById(userId: number) {

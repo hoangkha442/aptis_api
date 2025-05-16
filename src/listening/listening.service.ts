@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { groupBy } from 'lodash';
+
 import {
   CreateListeningItemDto,
   CreateListeningTestDto,
