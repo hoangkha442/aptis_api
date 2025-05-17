@@ -8,8 +8,9 @@ import { JwtStrategy } from 'src/strategy/jwt.strategy';
 import { ReadingModule } from './reading/reading.module';
 import { ListeningModule } from './listening/listening.module';
 import { InitDbController } from 'src/init-db/init-db.controller';
-import { CoursesModule } from './courses/courses.module';
 import { UserSessionsModule } from './user-sessions/user-sessions.module';
+import { CourseMembersModule } from './course-members/course-members.module';
+import { CourseModule } from './course/course.module';
 
 @Module({
   imports: [UserModule, AuthModule,
@@ -18,8 +19,9 @@ import { UserSessionsModule } from './user-sessions/user-sessions.module';
     }),
     ReadingModule,
     ListeningModule,
-    CoursesModule,
     UserSessionsModule,
+    CourseMembersModule,
+    CourseModule,
   ],
   controllers: [AppController, InitDbController],
   providers: [AppService, JwtStrategy],

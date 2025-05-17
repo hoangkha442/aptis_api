@@ -10,7 +10,12 @@ export class UserService {
   async getAllUsers() {
     return this.prisma.users.findMany({
       include: {
-        user_sessions: true
+        user_sessions: true,
+        course_members: {
+        include: {
+          course: true,
+        },
+      },
       }
     });
   }

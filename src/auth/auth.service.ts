@@ -21,7 +21,11 @@ export class AuthService {
     return { ip, device };
   }
 
-  private async checkOrCreateSession(userId: number, ip: string, device: string) {
+  private async checkOrCreateSession(
+    userId: number,
+    ip: string,
+    device: string,
+  ) {
     const existingSession = await this.prisma.user_sessions.findFirst({
       where: { user_id: userId, ip_address: ip, device },
     });
@@ -50,11 +54,53 @@ export class AuthService {
           token: uuidv4(),
           ip_address: ip,
           device,
-          expires_at: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000), 
+          expires_at: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
         },
       });
     }
   }
+
+  // PHIÊN BẢN TỐT HƠN, SẼ KHÔNG KHÓA TÀI KHOẢN MÀ THAY VÀO ĐÓ SẼ NGƯNG KHÔNG CHO ĐĂNG NHẬP NƠI KHÁC NỮA
+  //   private async checkOrCreateSession(userId: number, ip: string, device: string) {
+  //   const now = new Date();
+
+  //   const existingSession = await this.prisma.user_sessions.findFirst({
+  //     where: {
+  //       user_id: userId,
+  //       ip_address: ip,
+  //       device,
+  //       expires_at: { gte: now },
+  //     },
+  //   });
+
+  //   if (!existingSession) {
+  //     const activeSessions = await this.prisma.user_sessions.findMany({
+  //       where: {
+  //         user_id: userId,
+  //         expires_at: { gte: now },
+  //       },
+  //       orderBy: { created_at: 'asc' },
+  //     });
+
+  //     if (activeSessions.length >= 3) {
+  //       throw new HttpException(
+  //         'Bạn đã đăng nhập trên quá 3 thiết bị. Vui lòng đăng xuất thiết bị khác để tiếp tục.',
+  //         HttpStatus.FORBIDDEN,
+  //       );
+  //     }
+
+  //     await this.prisma.user_sessions.create({
+  //       data: {
+  //         session_id: uuidv4(),
+  //         user_id: userId,
+  //         token: uuidv4(),
+  //         ip_address: ip,
+  //         device,
+  //         expires_at: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
+  //       },
+  //     });
+  //   }
+  // }
 
   async login({ email, password }: bodyLogin, req: any) {
     const user = await this.prisma.users.findUnique({ where: { email } });
@@ -62,10 +108,14 @@ export class AuthService {
     if (!user) throw new HttpException('Sai email!', HttpStatus.BAD_REQUEST);
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) throw new HttpException('Sai mật khẩu!', HttpStatus.BAD_REQUEST);
+    if (!isMatch)
+      throw new HttpException('Sai mật khẩu!', HttpStatus.BAD_REQUEST);
 
     if (user.status !== 'active') {
-      throw new HttpException('Tài khoản không hoạt động', HttpStatus.FORBIDDEN);
+      throw new HttpException(
+        'Tài khoản không hoạt động',
+        HttpStatus.FORBIDDEN,
+      );
     }
 
     const { ip, device } = this.getClientInfo(req);
@@ -87,9 +137,13 @@ export class AuthService {
       include: { user_sessions: true },
     });
 
-    if (!user) throw new HttpException('Không tìm thấy tài khoản', HttpStatus.NOT_FOUND);
+    if (!user)
+      throw new HttpException('Không tìm thấy tài khoản', HttpStatus.NOT_FOUND);
     if (user.status !== 'active') {
-      throw new HttpException('Tài khoản không hoạt động', HttpStatus.FORBIDDEN);
+      throw new HttpException(
+        'Tài khoản không hoạt động',
+        HttpStatus.FORBIDDEN,
+      );
     }
 
     await this.checkOrCreateSession(userId, ip, device);
@@ -98,7 +152,9 @@ export class AuthService {
 
   async signup(body: BodySignup) {
     const { email, password, full_name, phone_number, role, last_day } = body;
-    const existingUser = await this.prisma.users.findUnique({ where: { email } });
+    const existingUser = await this.prisma.users.findUnique({
+      where: { email },
+    });
 
     if (existingUser) {
       throw new HttpException('Email đã tồn tại!', HttpStatus.BAD_REQUEST);
@@ -123,7 +179,10 @@ export class AuthService {
         },
       });
     } catch {
-      throw new HttpException('Lỗi khi tạo người dùng, vui lòng thử lại!', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        'Lỗi khi tạo người dùng, vui lòng thử lại!',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }
