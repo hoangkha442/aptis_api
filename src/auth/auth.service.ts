@@ -36,7 +36,7 @@ export class AuthService {
         orderBy: { created_at: 'asc' },
       });
 
-      if (sessions.length >= 3) {
+      if (sessions.length >= 5) {
         await this.prisma.users.update({
           where: { user_id: userId },
           data: { status: 'inactive' },
