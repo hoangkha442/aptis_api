@@ -130,7 +130,7 @@ export class AuthService {
   }
 
   async getMyInfo(userId: number, req: any): Promise<users> {
-    const { ip, device } = this.getClientInfo(req);
+    // const { ip, device } = this.getClientInfo(req);
 
     const user = await this.prisma.users.findUnique({
       where: { user_id: userId },
@@ -145,8 +145,14 @@ export class AuthService {
         HttpStatus.FORBIDDEN,
       );
     }
+    // Check admmin, if !admin retun false
+    // const studentsNotRoleAdmin = this.prisma.users.findMany({
+    //   where: {
+    //     role: "student"
+    //   }
+    // })
+      // await this.checkOrCreateSession(userId, ip, device);
 
-    await this.checkOrCreateSession(userId, ip, device);
     return user;
   }
 
