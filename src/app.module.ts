@@ -11,6 +11,7 @@ import { InitDbController } from 'src/init-db/init-db.controller';
 import { UserSessionsModule } from './user-sessions/user-sessions.module';
 import { CourseMembersModule } from './course-members/course-members.module';
 import { CourseModule } from './course/course.module';
+import { WritingModule } from './writing/writing.module';
 
 @Module({
   imports: [UserModule, AuthModule,
@@ -22,6 +23,7 @@ import { CourseModule } from './course/course.module';
     UserSessionsModule,
     CourseMembersModule,
     CourseModule,
+    WritingModule,
   ],
   controllers: [AppController, InitDbController],
   providers: [AppService, JwtStrategy],

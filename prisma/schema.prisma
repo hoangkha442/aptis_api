@@ -47,11 +47,12 @@ model course_members {
   user_id    Int
   course_id  Int
   role       users_role
-  user       users      @relation(fields: [user_id], references: [user_id])
-  course     courses    @relation(fields: [course_id], references: [course_id])
   created_at DateTime   @default(now())
+  course     courses    @relation(fields: [course_id], references: [course_id])
+  user       users      @relation(fields: [user_id], references: [user_id])
 
   @@unique([user_id, course_id])
+  @@index([course_id], map: "course_members_course_id_fkey")
 }
 
 model listening_test {
@@ -158,6 +159,33 @@ model reading_test {
   reading_part_3  reading_part_3[]
   reading_part_4  reading_part_4[]
   reading_part_5  reading_part_5[]
+}
+
+model writing_tests {
+  id          Int                 @id @default(autoincrement())
+  key_test    String?             @db.VarChar(50)
+  title       String              @db.VarChar(100)
+  description String?             @db.Text
+  created_at  DateTime            @default(now())
+  questions   writing_questions[]
+}
+
+model writing_questions {
+  id              Int           @id @default(autoincrement())
+  writing_test_id Int
+  part_number     Int
+  question_number Int
+  prompt          String        @db.Text
+  from_name       String?       @db.VarChar(100)
+  word_limit      String?       @db.VarChar(20)
+  answer_type     String        @db.VarChar(50)
+  note            String?       @db.Text
+  created_at      DateTime      @default(now())
+  description     String?       @db.Text
+  title           String?       @db.VarChar(250)
+  writing_test    writing_tests @relation(fields: [writing_test_id], references: [id])
+
+  @@index([writing_test_id])
 }
 
 enum users_role {
