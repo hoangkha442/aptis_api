@@ -12,6 +12,7 @@ import { UserSessionsModule } from './user-sessions/user-sessions.module';
 import { CourseMembersModule } from './course-members/course-members.module';
 import { CourseModule } from './course/course.module';
 import { WritingModule } from './writing/writing.module';
+import { SpeakingModule } from './speaking/speaking.module';
 
 @Module({
   imports: [UserModule, AuthModule,
@@ -24,6 +25,7 @@ import { WritingModule } from './writing/writing.module';
     CourseMembersModule,
     CourseModule,
     WritingModule,
+    SpeakingModule,
   ],
   controllers: [AppController, InitDbController],
   providers: [AppService, JwtStrategy],

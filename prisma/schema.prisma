@@ -188,6 +188,30 @@ model writing_questions {
   @@index([writing_test_id])
 }
 
+model speaking_tests {
+  id          Int                  @id @default(autoincrement())
+  key_test    String?              @db.VarChar(50)
+  title       String               @db.VarChar(100)
+  description String?              @db.Text
+  created_at  DateTime             @default(now())
+  questions   speaking_questions[]
+}
+
+model speaking_questions {
+  id               Int            @id @default(autoincrement())
+  speaking_test_id Int
+  part_number      Int
+  question_number  Int
+  prompt           String         @db.Text
+  image_url        String?        @db.VarChar(255)
+  audio_url        String?        @db.VarChar(255)
+  suggested_time   Int
+  created_at       DateTime       @default(now())
+  speaking_test    speaking_tests @relation(fields: [speaking_test_id], references: [id])
+
+  @@index([speaking_test_id])
+}
+
 enum users_role {
   admin
   student
