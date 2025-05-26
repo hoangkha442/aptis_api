@@ -137,6 +137,7 @@ export class AuthService {
       include: { user_sessions: true },
     });
 
+    
     if (!user)
       throw new HttpException('Không tìm thấy tài khoản', HttpStatus.NOT_FOUND);
     if (user.status !== 'active') {

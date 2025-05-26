@@ -75,6 +75,7 @@ model listening_test_items {
   options                 String?         @db.Text
   script                  String?         @db.Text
   topic                   String?         @db.VarChar(100)
+  listening_audio         String?         @db.VarChar(100)
   hidden_correct_aswer    Boolean?        @default(true)
   listening_test          listening_test? @relation(fields: [listening_test_id], references: [listening_test_id], onDelete: Cascade, onUpdate: NoAction, map: "listening_test_items_ibfk_1")
 
