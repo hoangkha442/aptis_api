@@ -75,7 +75,7 @@ model listening_test_items {
   options                 String?         @db.Text
   script                  String?         @db.Text
   topic                   String?         @db.VarChar(100)
-  listening_audio         String?         @db.VarChar(100)
+  listening_audio         String?         @db.VarChar(150)
   hidden_correct_aswer    Boolean?        @default(true)
   listening_test          listening_test? @relation(fields: [listening_test_id], references: [listening_test_id], onDelete: Cascade, onUpdate: NoAction, map: "listening_test_items_ibfk_1")
 
@@ -142,6 +142,9 @@ model reading_part_5 {
   name_of_test         String?       @db.VarChar(100)
   description          String?       @db.Text
   content              String?       @db.Text
+  short_answer         String?       @db.Text
+  paragraph            String?       @db.Text
+  vietnam_paragraph    String?       @db.Text
   sort_order           Int?
   hidden_correct_aswer Boolean?      @default(true)
   reading_test         reading_test? @relation(fields: [reading_test_id], references: [reading_test_id], onDelete: Cascade, onUpdate: NoAction, map: "reading_part_5_ibfk_1")
