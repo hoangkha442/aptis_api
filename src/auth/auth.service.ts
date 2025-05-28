@@ -5,6 +5,7 @@ import { bodyLogin } from './dto/login.dto';
 import { BodySignup } from './dto/signup.dto';
 import * as bcrypt from 'bcrypt';
 import * as useragent from 'useragent';
+import * as dayjs from 'dayjs';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -137,7 +138,6 @@ export class AuthService {
       include: { user_sessions: true },
     });
 
-    
     if (!user)
       throw new HttpException('Không tìm thấy tài khoản', HttpStatus.NOT_FOUND);
     if (user.status !== 'active') {
@@ -152,9 +152,12 @@ export class AuthService {
     //     role: "student"
     //   }
     // })
-      // await this.checkOrCreateSession(userId, ip, device);
+    // await this.checkOrCreateSession(userId, ip, device);
 
-    return user;
+    return {
+      ...user,
+      last_online: new Date()
+    };
   }
 
   async signup(body: BodySignup) {

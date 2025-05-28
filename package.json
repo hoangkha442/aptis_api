@@ -34,6 +34,7 @@
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
     "class-validator": "^0.14.1",
+    "dayjs": "^1.11.13",
     "lodash": "^4.17.21",
     "npm": "^11.4.0",
     "passport": "^0.7.0",
