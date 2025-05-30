@@ -12,11 +12,11 @@ export class UserService {
       include: {
         user_sessions: true,
         course_members: {
-        include: {
-          course: true,
+          include: {
+            course: true,
+          },
         },
       },
-      }
     });
   }
 
@@ -29,7 +29,7 @@ export class UserService {
   // ✅ Tạo người dùng có bcrypt hash mật khẩu
   async createUser(userData: CreateUserDto) {
     if (!userData.password) {
-      throw new Error("Password is required");
+      throw new Error('Password is required');
     }
 
     const salt = await bcrypt.genSalt(10);

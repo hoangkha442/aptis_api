@@ -22,70 +22,28 @@ export class AuthService {
     return { ip, device };
   }
 
-  private async checkOrCreateSession(
-    userId: number,
-    ip: string,
-    device: string,
-  ) {
-    const existingSession = await this.prisma.user_sessions.findFirst({
-      where: { user_id: userId, ip_address: ip, device },
-    });
-
-    if (!existingSession) {
-      const sessions = await this.prisma.user_sessions.findMany({
-        where: { user_id: userId },
-        orderBy: { created_at: 'asc' },
-      });
-
-      if (sessions.length >= 5) {
-        await this.prisma.users.update({
-          where: { user_id: userId },
-          data: { status: 'inactive' },
-        });
-        throw new HttpException(
-          'Tài khoản bị khóa do đăng nhập quá số thiết bị cho phép.',
-          HttpStatus.FORBIDDEN,
-        );
-      }
-
-      await this.prisma.user_sessions.create({
-        data: {
-          session_id: uuidv4(),
-          user_id: userId,
-          token: uuidv4(),
-          ip_address: ip,
-          device,
-          expires_at: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
-        },
-      });
-    }
-  }
-
-  // PHIÊN BẢN TỐT HƠN, SẼ KHÔNG KHÓA TÀI KHOẢN MÀ THAY VÀO ĐÓ SẼ NGƯNG KHÔNG CHO ĐĂNG NHẬP NƠI KHÁC NỮA
-  //   private async checkOrCreateSession(userId: number, ip: string, device: string) {
-  //   const now = new Date();
-
+  // private async checkOrCreateSession(
+  //   userId: number,
+  //   ip: string,
+  //   device: string,
+  // ) {
   //   const existingSession = await this.prisma.user_sessions.findFirst({
-  //     where: {
-  //       user_id: userId,
-  //       ip_address: ip,
-  //       device,
-  //       expires_at: { gte: now },
-  //     },
+  //     where: { user_id: userId, ip_address: ip, device },
   //   });
 
   //   if (!existingSession) {
-  //     const activeSessions = await this.prisma.user_sessions.findMany({
-  //       where: {
-  //         user_id: userId,
-  //         expires_at: { gte: now },
-  //       },
+  //     const sessions = await this.prisma.user_sessions.findMany({
+  //       where: { user_id: userId },
   //       orderBy: { created_at: 'asc' },
   //     });
 
-  //     if (activeSessions.length >= 3) {
+  //     if (sessions.length >= 5) {
+  //       await this.prisma.users.update({
+  //         where: { user_id: userId },
+  //         data: { status: 'inactive' },
+  //       });
   //       throw new HttpException(
-  //         'Bạn đã đăng nhập trên quá 3 thiết bị. Vui lòng đăng xuất thiết bị khác để tiếp tục.',
+  //         'Tài khoản bị khóa do đăng nhập quá số thiết bị cho phép.',
   //         HttpStatus.FORBIDDEN,
   //       );
   //     }
@@ -102,6 +60,48 @@ export class AuthService {
   //     });
   //   }
   // }
+
+  // PHIÊN BẢN TỐT HƠN, SẼ KHÔNG KHÓA TÀI KHOẢN MÀ THAY VÀO ĐÓ SẼ NGƯNG KHÔNG CHO ĐĂNG NHẬP NƠI KHÁC NỮA
+    private async checkOrCreateSession(userId: number, ip: string, device: string) {
+    const now = new Date();
+
+    const existingSession = await this.prisma.user_sessions.findFirst({
+      where: {
+        user_id: userId,
+        ip_address: ip,
+        device,
+        expires_at: { gte: now },
+      },
+    });
+
+    if (!existingSession) {
+      const activeSessions = await this.prisma.user_sessions.findMany({
+        where: {
+          user_id: userId,
+          expires_at: { gte: now },
+        },
+        orderBy: { created_at: 'asc' },
+      });
+
+      if (activeSessions.length >= 5) {
+        throw new HttpException(
+          'Bạn đã đăng nhập trên quá 5 thiết bị. Vui lòng đăng xuất thiết bị khác để tiếp tục.',
+          HttpStatus.FORBIDDEN,
+        );
+      }
+
+      await this.prisma.user_sessions.create({
+        data: {
+          session_id: uuidv4(),
+          user_id: userId,
+          token: uuidv4(),
+          ip_address: ip,
+          device,
+          expires_at: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
+        },
+      });
+    }
+  }
 
   async login({ email, password }: bodyLogin, req: any) {
     const user = await this.prisma.users.findUnique({ where: { email } });
