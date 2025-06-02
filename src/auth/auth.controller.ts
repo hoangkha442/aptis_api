@@ -55,17 +55,17 @@ export class AuthController {
     return this.authService.signup(bodySignup);
   }
 
-  // @Get('google')
-  // googleAuth(@Res() res: Response) {
-  //   const url = this.driveService.getAuthUrl();
-  //   res.redirect(url);
-  // }
+  @Get('google')
+  googleAuth(@Res() res: Response) {
+    const url = this.driveService.getAuthUrl();
+    res.redirect(url);
+  }
 
-  // @Get('google/callback')
-  // async googleCallback(@Query('code') code: string, @Res() res: Response) {
-  //   await this.driveService.setCredentials(code);
-  //   res.redirect('http://localhost:5173/'); // Frontend URL
-  // }
+  @Get('google/callback')
+  async googleCallback(@Query('code') code: string, @Res() res: Response) {
+    await this.driveService.setCredentials(code);
+    res.redirect('http://localhost:5173/'); // Frontend URL
+  }
 
   @Get('videos')
   async listFiles(@Query('folderId') folderId: string) {
