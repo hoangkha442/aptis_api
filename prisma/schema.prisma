@@ -19,6 +19,7 @@ model users {
   create_at      DateTime?        @default(now()) @db.DateTime(0)
   last_day       DateTime?        @db.DateTime(0)
   last_online    DateTime?        @db.DateTime(0)
+  is_video       Boolean?         @default(false)
   course_members course_members[]
   user_sessions  user_sessions[]
 }

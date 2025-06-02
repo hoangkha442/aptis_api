@@ -14,6 +14,7 @@ export class UserService {
         course_members: {
           include: {
             course: true,
+            
           },
         },
       },
