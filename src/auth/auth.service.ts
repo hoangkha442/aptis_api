@@ -62,7 +62,11 @@ export class AuthService {
   // }
 
   // PHIÊN BẢN TỐT HƠN, SẼ KHÔNG KHÓA TÀI KHOẢN MÀ THAY VÀO ĐÓ SẼ NGƯNG KHÔNG CHO ĐĂNG NHẬP NƠI KHÁC NỮA
-    private async checkOrCreateSession(userId: number, ip: string, device: string) {
+  private async checkOrCreateSession(
+    userId: number,
+    ip: string,
+    device: string,
+  ) {
     const now = new Date();
 
     const existingSession = await this.prisma.user_sessions.findFirst({
@@ -121,6 +125,15 @@ export class AuthService {
 
     const { ip, device } = this.getClientInfo(req);
     await this.checkOrCreateSession(user.user_id, ip, device);
+    const userSessions : any[] = await this.prisma.user_sessions.findMany({
+      where: { user_id: user.user_id },
+    });
+    if (!userSessions || userSessions.length >= 5) {
+      throw new HttpException(
+          'Bạn đã đăng nhập trên quá 5 thiết bị. Vui lòng đăng xuất thiết bị khác để tiếp tục.',
+          HttpStatus.FORBIDDEN,
+        );
+    }
 
     const token = await this.jwtService.signAsync(
       { data: { user_id: user.user_id } },
@@ -156,7 +169,7 @@ export class AuthService {
 
     return {
       ...user,
-      last_online: new Date()
+      last_online: new Date(),
     };
   }
 
